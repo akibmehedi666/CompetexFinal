@@ -41,11 +41,9 @@ This project uses **MySQL** as its database.
 1. Open MySQL Workbench or terminal.
 2. Create the database (skip if already created):
 
-```sql
-CREATE DATABASE competex_db;
 
-### Import the SQL file provided in this repository:
-
+- CREATE DATABASE competex_db;
+- Import the SQL file provided in this repository:
 
 
 
