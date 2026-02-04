@@ -1,21 +1,53 @@
-# Competex Project
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-This repository contains a web-based application that uses **MySQL** as the database and **Node.js with npm** for running the project.
+## Getting Started
 
----
-
-## Prerequisites
-
-Make sure the following software is installed on your system:
-
-- **Node.js** (LTS version recommended)
-- **npm** (comes with Node.js)
-- **MySQL Server**
-- MySQL client (MySQL Workbench or MySQL CLI)
-
-Check installed versions:
+First, run the development server:
 
 ```bash
-node -v
-npm -v
-mysql --version
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+## Database Setup (MySQL)
+
+This project uses **MySQL** as its database.
+
+### Prerequisites
+
+- MySQL Server installed
+- MySQL Workbench or MySQL CLI
+
+### Import Database
+
+1. Open MySQL Workbench or terminal.
+2. Create the database (skip if already created):
+
+```sql
+CREATE DATABASE competex_db;
+
+### Import the SQL file provided in this repository:
+
+
+
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
