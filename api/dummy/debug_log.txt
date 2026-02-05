@@ -1,0 +1,42 @@
+Skipping Mentor Insert. Role is: Participant
+Skipping Mentor Insert. Role is: Organizer
+Skipping Mentor Insert. Role is: Organizer
+Skipping Mentor Insert. Role is: Participant
+[2026-01-22 19:18:26] Received Input: 
+[2026-01-22 19:18:26] Error: Invalid JSON input
+[2026-01-22 19:18:26] Received Input: {"id":"9b363c1b-0055-4172-9715-192946c4ca86","university":"United International University","bio":"hello,,,,","skills":["Python"],"github":"https://github.com/toufiq","linkedin":"","portfolio":""}
+[2026-01-22 19:18:26] Executing SQL: UPDATE users SET university = 'United International University', skills = '[\"Python\"]', bio = 'hello,,,,', github = 'https://github.com/toufiq', linkedin = '', portfolio = '' WHERE id = '9b363c1b-0055-4172-9715-192946c4ca86'
+[2026-01-22 19:18:26] Update Success
+2026-01-23 06:30:03 - --- New Request ---
+2026-01-23 06:30:03 - Raw Input: {"name":"team Akib","competition_id":"","leader_id":"8eaa9722-0b7c-4d1d-b8e4-4c27a40e3dfb","max_members":4,"description":"haiodw","project_idea":"gdewof","required_skills":["Python"]}
+2026-01-23 06:30:03 - Preparing to insert Team: 6973075b05b84
+2026-01-23 06:30:03 - Exception: Team creation failed: Cannot add or update a child row: a foreign key constraint fails (`competex_db`.`teams`, CONSTRAINT `teams_ibfk_2` FOREIGN KEY (`competition_id`) REFERENCES `events` (`id`))
+2026-01-23 06:30:04 - --- New Request ---
+2026-01-23 06:30:04 - Raw Input: {"name":"team Akib","competition_id":"","leader_id":"8eaa9722-0b7c-4d1d-b8e4-4c27a40e3dfb","max_members":4,"description":"haiodw","project_idea":"gdewof","required_skills":["Python"]}
+2026-01-23 06:30:04 - Preparing to insert Team: 6973075c8ed46
+2026-01-23 06:30:04 - Exception: Team creation failed: Cannot add or update a child row: a foreign key constraint fails (`competex_db`.`teams`, CONSTRAINT `teams_ibfk_2` FOREIGN KEY (`competition_id`) REFERENCES `events` (`id`))
+2026-01-23 06:38:01 - --- New Request ---
+2026-01-23 06:38:01 - Raw Input: {"name":"Backend Test Team 543","leader_id":"user-1","max_members":4,"description":"Testing via script","project_idea":"Automated Test","competition_id":"64e1ad07-23c9-482b-a040-b2ef008797a8","required_skills":["PHP","Testing"]}
+2026-01-23 06:38:01 - Preparing to insert Team: 697309397614e
+2026-01-23 06:38:01 - Exception: Team creation failed: Cannot add or update a child row: a foreign key constraint fails (`competex_db`.`teams`, CONSTRAINT `teams_ibfk_1` FOREIGN KEY (`leader_id`) REFERENCES `users` (`id`))
+2026-01-23 06:41:06 - --- New Request ---
+2026-01-23 06:41:06 - Raw Input: {"name":"Backend Test Team 194","leader_id":"6635c06e-22c9-4807-a99e-a3bf3d730a87","max_members":4,"description":"Testing via script","project_idea":"Automated Test","competition_id":"64e1ad07-23c9-482b-a040-b2ef008797a8","required_skills":["PHP","Testing"]}
+2026-01-23 06:41:06 - Preparing to insert Team: 697309f297636
+2026-01-23 06:41:06 - Success
+2026-01-23 06:45:44 - --- New Request ---
+2026-01-23 06:45:44 - Raw Input: {"name":"Team Akib","competition_id":"28b4b577-ab64-4749-8d6a-a1c1667fc71a","leader_id":"8eaa9722-0b7c-4d1d-b8e4-4c27a40e3dfb","max_members":4,"description":"I am Akib.","project_idea":"we want to print hello world","required_skills":["Python","C"]}
+2026-01-23 06:45:44 - Preparing to insert Team: 69730b08afbde
+2026-01-23 06:45:44 - Success
+2026-01-23 07:58:49 - --- New Request ---
+2026-01-23 07:58:49 - Raw Input: {"name":"General Team 519","leader_id":"07cdc915-05ff-45ac-a876-3f698acf7c5f","max_members":5,"description":"Team with no event attached.","project_idea":"General project","competition_id":"","required_skills":["General"]}
+2026-01-23 07:58:49 - Preparing to insert Team: 69731c29bfa62
+2026-01-23 07:58:49 - Success
+2026-01-23 12:21:13 - --- New Request ---
+2026-01-23 12:21:14 - Raw Input: {"name":"Team OPU","competition_id":"","leader_id":"8eaa9722-0b7c-4d1d-b8e4-4c27a40e3dfb","max_members":5,"description":"Nothing to do , ","project_idea":"just fun","required_skills":["Python"]}
+2026-01-23 12:21:14 - Preparing to insert Team: 697359aa0389e
+2026-01-23 12:21:14 - Success
+[2026-01-23 19:04:28] Received Input: 
+[2026-01-23 19:04:28] Error: Invalid JSON input
+[2026-01-23 19:04:28] Received Input: {"id":"fe732f98-cb3b-40f3-b514-d143b0182644","university":"Dhaka International University","bio":"Hello, I am Good boy.","skills":["C","Python"],"github":"https://github.com/salman123","linkedin":"","portfolio":""}
+[2026-01-23 19:04:28] Executing SQL: UPDATE users SET university = 'Dhaka International University', skills = '[\"C\",\"Python\"]', bio = 'Hello, I am Good boy.', github = 'https://github.com/salman123', linkedin = '', portfolio = '' WHERE id = 'fe732f98-cb3b-40f3-b514-d143b0182644'
+[2026-01-23 19:04:28] Update Success

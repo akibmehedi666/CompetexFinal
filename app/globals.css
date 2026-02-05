@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+
+
+@theme {
+  --color-background: #080808;
+  --color-foreground: #ededed;
+
+  --color-primary: #080808;
+  --color-primary-foreground: #ededed;
+
+  --color-accent1: #00E5FF;
+  --color-accent1-foreground: #000000;
+
+  --color-accent2: #ADFF00;
+  --color-accent2-foreground: #000000;
+
+  --color-border: rgba(255, 255, 255, 0.1);
+
+  --font-outfit: var(--font-outfit);
+}
+
+:root {
+  --background: #080808;
+  --foreground: #ededed;
+}
+
+/* Custom Utilities */
+@layer utilities {
+  .glass {
+    @apply bg-white/5 backdrop-blur-md border border-white/10;
+  }
+
+  .glow-text {
+    text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+  }
+
+  .glow-box {
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.1);
+  }
+
+  /* Font Feature Settings */
+  .antialiased {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}

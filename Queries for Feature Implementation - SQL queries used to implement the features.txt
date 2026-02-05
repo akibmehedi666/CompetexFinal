@@ -1,0 +1,528 @@
+Queries for Feature Implementation: SQL queries used to implement the features
+Project: competex_final
+Generated: 2026-02-04
+
+NOTE: Major/primary queries only. Dynamic placeholders are shown as-is.
+
+=== Authentication & User Profiles ===
+File: api/login.php
+SQL 1:
+SELECT u.id, u.name, u.email, u.password, u.role, u.university, u.skills, u.avatar, u.bio, u.github, u.linkedin, u.portfolio, u.profile_visibility, u.verified, u.department, u.location,
+        sp.company_name, sp.description as sponsor_bio
+        FROM users u
+        LEFT JOIN sponsor_profiles sp ON u.id = sp.user_id
+        WHERE u.email = '$email'
+
+File: api/signup.php
+SQL 1:
+INSERT INTO users (id, name, email, password, role) VALUES ('$id', '$name', '$email', '$password', '$role')
+
+File: api/get_profile.php
+SQL 1:
+SELECT u.id, u.email, u.role,
+        pp.name as participant_name, pp.university as participant_university, pp.skills as participant_skills, pp.avatar as participant_avatar, pp.bio as participant_bio, pp.github as participant_github, pp.linkedin as participant_linkedin, pp.portfolio as participant_portfolio, pp.profile_visibility as participant_profile_visibility, pp.verified as participant_verified, pp.department as participant_department, pp.location as participant_location,
+        u.name, u.university, u.skills, u.avatar, u.bio, u.github, u.linkedin, u.portfolio, u.profile_visibility, u.verified, u.department, u.location,
+        sp.company_name, sp.industry, sp.description as sponsor_bio, sp.website as sponsor_website, sp.sponsorship_categories, sp.location as sponsor_location,
+        rp.company_name as recruiter_company, rp.position as recruiter_position, rp.department as recruiter_department, rp.website as recruiter_website, rp.linkedin as recruiter_linkedin,
+        mp.name as mentor_name, mp.company_name as mentor_company, mp.position as mentor_position, mp.expertise, mp.years_experience, mp.bio as mentor_bio, mp.linkedin as mentor_linkedin, mp.website as mentor_website,
+        op.organization_name, op.website as organizer_website, op.is_institution
+        FROM users u
+        LEFT JOIN participant_profiles pp ON u.id = pp.user_id
+        LEFT JOIN sponsor_profiles sp ON u.id = sp.user_id
+        LEFT JOIN recruiter_profiles rp ON u.id = rp.user_id
+        LEFT JOIN mentor_profiles mp ON u.id = mp.user_id
+        LEFT JOIN organizer_profiles op ON u.id = op.user_id
+        WHERE u.id = '$user_id'
+
+File: api/update_profile.php
+SQL 1:
+UPDATE users SET <dynamic columns> WHERE id = '$id'
+
+=== Notifications ===
+File: api/get_notifications.php
+SQL 1:
+SELECT * FROM (
+        SELECT
+            id,
+            title,
+            content,
+            priority,
+            created_at,
+            0 AS is_read,
+            'announcement' AS notif_type,
+            NULL AS reference_id
+        FROM announcements
+        UNION ALL
+        SELECT
+            id,
+            CASE
+                WHEN type = 'invite' THEN 'Team Invitation'
+                WHEN type = 'invite_result' THEN 'Team Invitation Update'
+                WHEN type = 'team_join_request' THEN 'Team Join Request'
+                WHEN type = 'team_join_request_result' THEN 'Team Join Update'
+                WHEN type = 'event_registration' THEN 'New Registration'
+                WHEN type = 'event_registration_result' THEN 'Registration Update'
+                WHEN type = 'event_join_request' THEN 'Event Join Request'
+                WHEN type = 'event_schedule_update' THEN 'Event Update'
+                WHEN type = 'sponsorship_request' THEN 'Sponsorship Request'
+                WHEN type = 'sponsorship_request_result' THEN 'Sponsorship Request Update'
+                WHEN type = 'job_application' THEN 'New Job Application'
+                WHEN type = 'mentorship_request' THEN 'Mentorship Request'
+                WHEN type = 'mentorship_request_result' THEN 'Mentorship Update'
+                WHEN type = 'mentorship_session_update' THEN 'Mentorship Session'
+                WHEN type = 'team_member_removed' THEN 'Team Update'
+                ELSE 'Notification'
+            END AS title,
+            message AS content,
+            CASE
+                WHEN type IN ('invite', 'team_join_request', 'event_registration', 'event_join_request', 'sponsorship_request', 'job_application', 'mentorship_request') THEN 'high'
+                WHEN type IN ('invite_result', 'team_join_request_result', 'event_registration_result', 'sponsorship_request_result', 'mentorship_request_result') THEN 'medium'
+                WHEN type IN ('mentorship_session_update', 'event_schedule_update', 'team_member_removed') THEN 'low'
+                ELSE 'medium'
+            END AS priority,
+            created_at,
+            is_read,
+            type AS notif_type,
+            reference_id
+        FROM notifications
+        WHERE user_id = ?
+    ) AS n
+    ORDER BY created_at DESC
+    LIMIT 50
+
+File: api/lib/notifications.php
+SQL 1:
+INSERT INTO notifications (id, user_id, reference_id, message, type, is_read, created_at)
+        SELECT UUID(), x.user_id, x.reference_id, x.message, ?, 0, CURRENT_TIMESTAMP
+        FROM ( $selectSql ) AS x
+
+=== Messaging ===
+File: api/send_message.php
+SQL 1:
+INSERT INTO messages (id, sender_id, recipient_id, content) VALUES ('$id', '$sender_id', '$recipient_id', '$content')
+
+File: api/get_messages.php
+SQL 1:
+SELECT id, sender_id, content, created_at, is_read
+        FROM messages
+        WHERE (sender_id = '$user_id' AND recipient_id = '$other_id')
+           OR (sender_id = '$other_id' AND recipient_id = '$user_id')
+        ORDER BY created_at ASC
+
+=== Events ===
+File: api/create_event.php
+SQL 1:
+INSERT INTO events (
+            id, organizer_id, title, description, category, mode, status,
+            date_display, start_date, venue, max_participants, image,
+            prizes, registration_deadline, tags, registration_type, max_teams,
+            contact_email, contact_phone, registration_fee
+        ) VALUES (
+            ?, ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?,
+            ?, ?, ?
+        )
+
+File: api/get_events.php
+SQL 1:
+SELECT e.id, e.title, e.description, e.category, e.mode, ($computedStatus) AS status,
+               e.date_display as date, e.start_date, e.venue, e.max_participants,
+               e.participants_count, e.image, e.prizes, e.tags, e.registration_type, e.max_teams,
+               e.registration_fee,
+               e.contact_email, e.contact_phone,
+               u.name as organizer, u.email as user_email
+        FROM events e
+        LEFT JOIN users u ON e.organizer_id = u.id
+        WHERE $where
+        $orderBy
+
+File: api/request_event_join.php
+SQL 1:
+INSERT INTO event_requests (id, event_id, team_id, user_id, status, created_at) VALUES ('$request_id', '$event_id', {team_id_or_NULL}, '$user_id', 'pending', '$created_at')
+
+File: api/respond_event_request.php
+SQL 1:
+UPDATE event_requests SET status = '$action' WHERE id = '$request_id'
+SQL 2:
+INSERT INTO event_registrations (id, event_id, user_id, team_id, transaction_id, status) VALUES ('$reg_id', '$event_id', '$user_id', $team_or_null, $txVal, 'approved')
+SQL 3:
+UPDATE events SET participants_count = $count WHERE id = '$event_id'
+
+File: api/submit_event_review.php
+SQL 1:
+INSERT INTO event_reviews (id, event_id, user_id, rating, review, created_at)
+        SELECT
+            UUID(),
+            e.id,
+            u.id,
+            ?,
+            NULLIF(?, ''),
+            CURRENT_TIMESTAMP
+        FROM events e
+        JOIN users u ON u.id = ? AND u.role IN ('Participant','participant')
+        WHERE e.id = ?
+          AND $completedExpr
+          AND (
+              EXISTS(
+                  SELECT 1
+                  FROM event_registrations er
+                  WHERE er.event_id = e.id
+                    AND er.status = 'approved'
+                    AND (
+                        er.user_id = u.id
+                        OR (
+                            er.team_id IS NOT NULL
+                            AND EXISTS (
+                                SELECT 1
+                                FROM team_members tm
+                                WHERE tm.team_id = er.team_id
+                                  AND tm.user_id = u.id
+                            )
+                        )
+                    )
+              )
+              OR EXISTS(SELECT 1 FROM event_participants ep WHERE ep.event_id = e.id AND ep.user_id = u.id)
+              OR EXISTS(
+                  SELECT 1
+                  FROM event_teams et
+                  JOIN team_members tm2 ON tm2.team_id = et.team_id
+                  WHERE et.event_id = e.id
+                    AND tm2.user_id = u.id
+              )
+          )
+        LIMIT 1
+
+=== Teams & Invitations ===
+File: api/create_team.php
+SQL 1:
+INSERT INTO teams (id, name, leader_id, competition_id, max_members, description, project_idea, status, required_skills)
+                 VALUES ('$team_id', '$name', '$leader_id', $competition_id, $max_members, '$description', $project_idea, $status, $required_skills)
+SQL 2:
+INSERT INTO team_members (team_id, user_id) VALUES ('$team_id', '$leader_id')
+
+File: api/get_teams.php
+SQL 1:
+SELECT t.*,
+        tm.user_id, tm.joined_at,
+        u.name as user_name, u.avatar as user_avatar, u.skills as user_skills,
+        (CASE WHEN t.leader_id = u.id THEN 'leader' ELSE 'member' END) as member_role
+        FROM teams t
+        LEFT JOIN team_members tm ON t.id = tm.team_id
+        LEFT JOIN users u ON tm.user_id = u.id
+        ORDER BY t.created_at DESC
+
+File: api/invite_participant.php
+SQL 1:
+INSERT INTO team_invitations SET id=:id, team_id=:team_id, sender_id=:sender_id, receiver_id=:receiver_id, created_at=:created_at
+
+File: api/respond_request.php
+SQL 1:
+UPDATE team_requests SET status='$new_status' WHERE id='$request_id'
+SQL 2:
+INSERT INTO team_members (team_id, user_id) VALUES ('$team_id', '$user_id')
+
+=== Leaderboards ===
+File: api/get_event_leaderboard.php
+SQL 1:
+SELECT
+                    l.position AS rank,
+                    u.name AS name,
+                    u.university AS institution,
+                    u.avatar AS avatar,
+                    l.points AS score
+                FROM leaderboards l
+                JOIN users u ON l.user_id = u.id
+                WHERE l.event_id = ?
+                ORDER BY l.position ASC, u.name ASC
+
+File: api/update_leaderboard.php
+SQL 1:
+UPDATE leaderboards l
+        JOIN events e ON l.event_id = e.id
+        JOIN (
+            $derived
+        ) v ON v.id = l.id
+        SET l.position = v.position,
+            l.points = v.points
+        WHERE l.event_id = ?
+          AND e.organizer_id = ?
+
+=== Mentorship ===
+File: api/create_mentorship_request.php
+SQL 1:
+INSERT INTO mentorship_requests (id, mentor_id, mentee_id, status, created_at, message, topic, proposed_slots)
+    SELECT
+        ?,
+        mp.id,
+        u_mentee.id,
+        'pending',
+        CURRENT_TIMESTAMP,
+        ?,
+        NULLIF(?, ''),
+        ?
+    FROM mentor_profiles mp
+    JOIN users u_mentor ON u_mentor.id = mp.user_id AND u_mentor.role IN ('Mentor','mentor')
+    JOIN users u_mentee ON u_mentee.id = ? AND u_mentee.role IN ('Participant','participant')
+    WHERE mp.id = ?
+
+File: api/respond_mentorship_request.php
+SQL 1:
+UPDATE mentorship_requests mr
+        JOIN mentor_profiles mp ON mr.mentor_id = mp.id
+        JOIN users u ON mp.user_id = u.id
+        SET mr.status = ?
+        WHERE mr.id = ?
+          AND mp.user_id = ?
+          AND u.role IN ('Mentor','mentor')
+          AND mr.status = 'pending'
+SQL 2:
+INSERT INTO mentorship_sessions (id, request_id, mentor_id, mentee_id, status)
+            SELECT
+                UUID(),
+                mr.id,
+                mr.mentor_id,
+                mr.mentee_id,
+                'scheduled'
+            FROM mentorship_requests mr
+            JOIN mentor_profiles mp ON mr.mentor_id = mp.id
+            WHERE mr.id = ?
+              AND mp.user_id = ?
+            LIMIT 1
+
+=== Sponsorship ===
+File: api/send_sponsorship_request.php
+SQL 1:
+INSERT INTO sponsorship_requests (id, organizer_id, sponsor_id, event_id, requested_amount, message, status, created_at)
+    SELECT
+        ?,
+        e.organizer_id,
+        sp.id,
+        e.id,
+        ?,
+        ?,
+        'pending',
+        ?
+    FROM events e
+    JOIN sponsor_profiles sp ON (sp.id = ? OR sp.user_id = ?)
+    WHERE e.id = ? AND e.organizer_id = ?
+
+File: api/respond_sponsorship_request_sponsor.php
+SQL 1:
+UPDATE sponsorship_requests sr
+    JOIN sponsor_profiles sp ON sr.sponsor_id = sp.id
+    SET sr.status = ?
+    WHERE sr.id = ?
+      AND sp.user_id = ?
+      AND sr.status = 'pending'
+
+=== Jobs ===
+File: api/create_job_posting.php
+SQL 1:
+INSERT INTO job_postings
+        (id, recruiter_id, title, company_name, location, salary_range, employment_type, description, deadline, tags)
+    SELECT
+        UUID(),
+        u.id,
+        ?,
+        COALESCE(NULLIF(?, ''), rp.company_name, u.name),
+        ?,
+        NULLIF(?, ''),
+        ?,
+        ?,
+        ?,
+        ?
+    FROM users u
+    LEFT JOIN recruiter_profiles rp ON rp.user_id = u.id
+    WHERE u.id = ?
+      AND u.role IN ('Recruiter','recruiter')
+
+File: api/get_job_postings.php
+SQL 1:
+SELECT
+        jp.id,
+        jp.title,
+        jp.company_name,
+        jp.location,
+        jp.salary_range,
+        jp.employment_type,
+        jp.description,
+        jp.deadline,
+        jp.tags,
+        jp.created_at,
+        u.id AS recruiter_id,
+        u.name AS recruiter_name
+    FROM job_postings jp
+    LEFT JOIN users u ON jp.recruiter_id = u.id
+    ORDER BY jp.created_at DESC
+
+File: api/apply_job.php
+SQL 1:
+INSERT INTO job_applications (id, job_id, applicant_id, status, message, cv_path, documents, created_at)
+        SELECT
+            UUID(),
+            jp.id,
+            u.id,
+            'pending',
+            NULLIF(?, ''),
+            ?,
+            ?,
+            CURRENT_TIMESTAMP
+        FROM job_postings jp
+        JOIN users u ON u.id = ?
+        WHERE jp.id = ?
+          AND EXISTS (
+              SELECT 1
+              FROM leaderboards l
+              WHERE l.user_id = u.id
+                AND l.position <= 5
+          )
+
+=== Resources ===
+File: api/upload_resource.php
+SQL 1:
+INSERT INTO community_resources
+            (id, uploader_id, name, domain, subject, category, description, file_path, file_type, file_name, file_size_bytes, downloads, is_premium, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, NULLIF(?, ''), ?, ?, ?, ?, 0, 0, CURRENT_TIMESTAMP)
+
+File: api/get_resources.php
+SQL 1:
+SELECT
+            r.id,
+            r.name,
+            r.domain,
+            r.subject,
+            r.category,
+            r.description,
+            r.file_type AS fileType,
+            r.file_name AS fileName,
+            r.file_size_bytes AS fileSizeBytes,
+            r.downloads,
+            DATE_FORMAT(r.created_at, '%b %e, %Y') AS date,
+            u.name AS uploaderName
+        FROM community_resources r
+        JOIN users u ON u.id = r.uploader_id
+        $whereSql
+        ORDER BY r.created_at DESC
+        LIMIT ?
+        OFFSET ?
+
+=== Institutions ===
+File: api/get_institutions.php
+SQL 1:
+SELECT
+            op.user_id AS institution_id,
+            op.organization_name AS name,
+            op.website,
+            op.is_institution,
+            COUNT(e.id) AS total_events,
+            SUM(
+                CASE
+                    WHEN e.start_date IS NOT NULL
+                     AND e.start_date >= NOW()
+                     AND e.status IN ('Upcoming','Live')
+                    THEN 1 ELSE 0
+                END
+            ) AS upcoming_events,
+            MAX(e.start_date) AS last_event_date,
+            (
+                SELECT e2.venue
+                FROM events e2
+                WHERE e2.organizer_id = op.user_id
+                  AND e2.venue IS NOT NULL
+                  AND e2.venue <> ''
+                ORDER BY e2.start_date DESC, e2.created_at DESC
+                LIMIT 1
+            ) AS location,
+            (
+                SELECT e3.title
+                FROM events e3
+                WHERE e3.organizer_id = op.user_id
+                ORDER BY e3.start_date DESC, e3.created_at DESC
+                LIMIT 1
+            ) AS last_event_title
+        FROM organizer_profiles op
+        JOIN users u ON u.id = op.user_id AND u.role IN ('Organizer','organizer')
+        JOIN events e ON e.organizer_id = op.user_id
+        WHERE op.is_institution = 1
+        GROUP BY op.user_id, op.organization_name, op.website, op.is_institution
+        ORDER BY upcoming_events DESC, total_events DESC, name ASC
+
+=== Recruitment Scout ===
+File: api/get_recruitment_scout_data.php
+SQL 1:
+WITH manual_events AS (
+    SELECT DISTINCT event_id FROM leaderboards
+),
+manual_top AS (
+    SELECT
+        e.id AS event_id,
+        e.title AS event_title,
+        e.category,
+        e.status,
+        e.date_display,
+        e.start_date,
+        JSON_ARRAYAGG(
+            JSON_OBJECT(
+                'user_id', u.id,
+                'name', u.name,
+                'university', u.university,
+                'avatar', u.avatar,
+                'points', l.points,
+                'rank', l.position
+            )
+        ) AS winners
+    FROM events e
+    JOIN leaderboards l ON l.event_id = e.id AND l.position <= 3
+    JOIN users u ON u.id = l.user_id
+    GROUP BY e.id, e.title, e.category, e.status, e.date_display, e.start_date
+),
+computed_ranked AS (
+    SELECT
+        e.id AS event_id,
+        e.title AS event_title,
+        e.category,
+        e.status,
+        e.date_display,
+        e.start_date,
+        u.id AS user_id,
+        u.name,
+        u.university,
+        u.avatar,
+        COALESCE(us.points, 0) AS points,
+        ROW_NUMBER() OVER (
+            PARTITION BY e.id
+            ORDER BY COALESCE(us.points, 0) DESC, u.name ASC
+        ) AS rn
+    FROM events e
+    JOIN event_participants ep ON ep.event_id = e.id
+    JOIN users u ON u.id = ep.user_id
+    LEFT JOIN user_stats us ON us.user_id = u.id
+    WHERE e.id NOT IN (SELECT event_id FROM manual_events)
+),
+computed_top AS (
+    SELECT
+        event_id,
+        event_title,
+        category,
+        status,
+        date_display,
+        start_date,
+        JSON_ARRAYAGG(
+            JSON_OBJECT(
+                'user_id', user_id,
+                'name', name,
+                'university', university,
+                'avatar', avatar,
+                'points', points,
+                'rank', rn
+            )
+        ) AS winners
+    FROM computed_ranked
+    WHERE rn <= 3
+    GROUP BY event_id, event_title, category, status, date_display, start_date
+)
+SELECT * FROM manual_top
+UNION ALL
+SELECT * FROM computed_top
+ORDER BY COALESCE(start_date, '9999-12-31') DESC, event_title ASC
